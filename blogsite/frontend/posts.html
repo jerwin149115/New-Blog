@@ -6,101 +6,113 @@
     <title>Blog - Homepage</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #e9ebee;
-            color: #1c1e21;
+            background-color: #f7f9fc;
+            color: #333;
+            line-height: 1.6;
         }
 
         header {
-            background-color: #3b5998;
-            color: #fff;
-            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         header h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 28px;
+            font-weight: bold;
         }
 
         header nav a {
-            color: #fff;
+            color: white;
             text-decoration: none;
             font-size: 16px;
-            margin-left: 15px;
+            margin-left: 20px;
+            transition: color 0.3s;
         }
 
         header nav a:hover {
-            text-decoration: underline;
+            color: #1c1e21;
         }
 
         main {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 15px;
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
         }
 
         button {
-            background-color: #3b5998;
-            color: #fff;
+            background-color: #4CAF50;
+            color: white;
             border: none;
+            padding: 12px 20px;
+            font-size: 18px;
             border-radius: 5px;
-            padding: 10px 15px;
             cursor: pointer;
-            font-size: 16px;
-            margin-bottom: 20px;
+            display: inline-block;
+            transition: background-color 0.3s;
+            margin-bottom: 30px;
         }
 
         button:hover {
-            background-color: #334d84;
+            background-color: #4CAF50;
         }
 
         #posts {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
         }
 
         article {
-            background-color: #fff;
-            border: 1px solid #ccd0d5;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            transition: box-shadow 0.3s;
+        }
+
+        article:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        article h2 {
+            font-size: 22px;
+            color: #2d2f36;
+            margin: 0;
+            font-weight: bold;
         }
 
         article p:first-of-type {
             font-size: 12px;
-            color: #90949c;
-            margin-bottom: 10px;
-        }
-
-        article h2 {
-            font-size: 18px;
-            color: #1d2129;
-            margin: 0 0 10px;
+            color: #777;
+            margin-bottom: 12px;
         }
 
         article p:last-of-type {
             font-size: 14px;
-            color: #4b4f56;
-            margin: 0 0 15px;
+            color: #555;
+            margin-bottom: 15px;
         }
 
         article a {
-            display: inline-block;
-            text-decoration: none;
             font-size: 14px;
-            color: #365899;
+            color: #3b5998;
+            text-decoration: none;
             font-weight: bold;
+            transition: color 0.3s;
         }
 
         article a:hover {
+            color: #1c1e21;
             text-decoration: underline;
         }
 
@@ -114,42 +126,54 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             padding-top: 60px;
+            transition: opacity 0.3s;
         }
 
         .modal-content {
-            background-color: #fff;
+            background-color: white;
             margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
+            padding: 25px;
+            border-radius: 8px;
             width: 80%;
-            max-width: 500px;
-            border-radius: 6px;
+            max-width: 600px;
+            transition: transform 0.3s;
         }
 
         .close {
             color: #aaa;
-            float: right;
             font-size: 28px;
             font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+            right: 20px;
         }
 
         .close:hover,
         .close:focus {
             color: black;
             text-decoration: none;
-            cursor: pointer;
         }
 
-        #addPostModal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding-top: 60px;
+        @media (max-width: 768px) {
+            #posts {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #posts {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            button {
+                font-size: 16px;
+                padding: 10px 15px;
+            }
         }
     </style>
 </head>
@@ -190,10 +214,11 @@
             {% endfor %}
         </section>
     </main>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const postsContainer = document.getElementById("posts");
-        
+
             fetch("http://127.0.0.1:8000/api/posts/")
                 .then(response => response.json())
                 .then(posts => {
@@ -206,7 +231,7 @@
                             hour: "2-digit",
                             minute: "2-digit",
                         });
-        
+
                         const postElement = document.createElement("article");
                         postElement.innerHTML = `
                             <p>${formattedDate}</p> 
@@ -219,7 +244,7 @@
                 })
                 .catch(error => console.error("Error fetching posts:", error));
         });
-        
+
         const modal = document.getElementById("addPostModal");
         const openModalBtn = document.getElementById("openModalBtn");
         const closeModalBtn = document.querySelector(".close");
@@ -227,15 +252,21 @@
 
         openModalBtn.addEventListener("click", () => {
             modal.style.display = "block";
+            modal.style.opacity = 1;
+            modal.querySelector(".modal-content").style.transform = "translateY(0)";
         });
 
         closeModalBtn.addEventListener("click", () => {
             modal.style.display = "none";
+            modal.style.opacity = 0;
+            modal.querySelector(".modal-content").style.transform = "translateY(-50px)";
         });
 
         window.addEventListener("click", (event) => {
             if (event.target === modal) {
                 modal.style.display = "none";
+                modal.style.opacity = 0;
+                modal.querySelector(".modal-content").style.transform = "translateY(-50px)";
             }
         });
 
@@ -252,7 +283,7 @@
                     },
                     body: JSON.stringify({ title, content }),
                 });
-        
+
                 if (response.ok) {
                     const newPost = await response.json();
                     alert("Post added successfully!");
@@ -267,17 +298,17 @@
                 alert("An error occurred. Please try again.");
             }
         });
-        
+
         function addPostToDOM(post) {
             const postsContainer = document.getElementById("posts");
             const postElement = document.createElement("article");
-        
+
             const createdAt = new Date(post.created_at).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
             });
-        
+
             postElement.innerHTML = `
                 <p>${createdAt}</p>
                 <h2>${post.title}</h2>
