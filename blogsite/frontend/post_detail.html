@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ post.title }}</title>
     <style>
+        /* General Styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -28,17 +29,6 @@
             font-size: 24px;
         }
 
-        header nav a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 16px;
-            margin-left: 15px;
-        }
-
-        header nav a:hover {
-            text-decoration: underline;
-        }
-
         main {
             max-width: 800px;
             margin: 20px auto;
@@ -60,51 +50,6 @@
             background-color: #334d84;
         }
 
-        #posts {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        article {
-            background-color: #fff;
-            border: 1px solid #ccd0d5;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-        }
-
-        article p:first-of-type {
-            font-size: 12px;
-            color: #90949c;
-            margin-bottom: 10px;
-        }
-
-        article h2 {
-            font-size: 18px;
-            color: #1d2129;
-            margin: 0 0 10px;
-        }
-
-        article p:last-of-type {
-            font-size: 14px;
-            color: #4b4f56;
-            margin: 0 0 15px;
-        }
-
-        article a {
-            display: inline-block;
-            text-decoration: none;
-            font-size: 14px;
-            color: #365899;
-            font-weight: bold;
-        }
-
-        article a:hover {
-            text-decoration: underline;
-        }
-
-        /* Post Details Section */
         #post-details {
             background-color: #fff;
             border: 1px solid #ccd0d5;
@@ -126,6 +71,42 @@
             color: #4b4f56;
         }
 
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
         footer {
             background-color: #3b5998;
             color: #fff;
@@ -139,7 +120,6 @@
             color: #fff;
             text-decoration: underline;
         }
-
     </style>
 </head>
 <body>
@@ -151,7 +131,107 @@
             <h2>{{ post.title }}</h2>
             <p>{{ post.content }}</p>
         </div>
+        <button id="editBtn">Edit</button>
+        <button id="deleteBtn" style="background-color: red;">Delete</button>
+
         <a href="/">Back to Home</a>
     </main>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeEditModal">&times;</span>
+            <h3>Edit Post</h3>
+            <form id="editPostForm" method="POST">
+                {% csrf_token %}
+                <label for="title">Title:</label>
+                <input type="text" id="editTitle" name="title" value="{{ post.title }}" required><br><br>
+            
+                <label for="content">Content:</label>
+                <textarea id="editContent" name="content" required>{{ post.content }}</textarea><br><br>
+            
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeDeleteModal">&times;</span>
+            <h3>Are you sure you want to delete this post?</h3>
+            <form id="deletePostForm" method="POST">
+                {% csrf_token %}
+                <button type="submit" style="background-color: red;">Delete</button>
+            </form>
+            <button id="cancelDelete" style="background-color: grey;">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        var editModal = document.getElementById("editModal");
+        var editBtn = document.getElementById("editBtn");
+        var closeEditModal = document.getElementById("closeEditModal");
+        editBtn.onclick = function() {
+            editModal.style.display = "block";
+        }
+        closeEditModal.onclick = function() {
+            editModal.style.display = "none";
+        }
+
+        var deleteModal = document.getElementById("deleteModal");
+        var deleteBtn = document.getElementById("deleteBtn");
+        var closeDeleteModal = document.getElementById("closeDeleteModal");
+        var cancelDelete = document.getElementById("cancelDelete");
+        deleteBtn.onclick = function() {
+            deleteModal.style.display = "block";
+        }
+        closeDeleteModal.onclick = function() {
+            deleteModal.style.display = "none";
+        }
+        cancelDelete.onclick = function() {
+            deleteModal.style.display = "none";
+        }
+
+        document.getElementById("editPostForm").onsubmit = function(e) {
+            e.preventDefault();
+            var title = document.getElementById("editTitle").value;
+            var content = document.getElementById("editContent").value;
+            console.log(title, content)
+            fetch(`/posts/{{ post.id }}/edit`, {
+                method: 'POST',
+                body: JSON.stringify({ title: title, content: content }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload(); 
+                }
+            });
+        }
+
+        document.getElementById("deletePostForm").onsubmit = function(e) {
+            e.preventDefault();
+            fetch(`/posts/{{ post.id }}/delete`, {
+                method: 'POST',
+                body: JSON.stringify({}),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // If deletion was successful, redirect to the home page or show a success message
+                if (data.success) {
+                    window.location.href = '/'; // Redirect to home after deletion
+                } else {
+                    alert("Error deleting post.");
+                }
+            });
+        }
+    </script>
 </body>
 </html>

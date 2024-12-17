@@ -16,6 +16,9 @@ from .serializers import PostSerializer
 from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
+from django.http import JsonResponse
+import json
+
 
 
 def index(request):
@@ -126,5 +129,49 @@ def add_post(request):
         form = PostForm()
     return render(request, 'index.html', {'form': form})
 
+
+
+@login_required
+def edit_post(request, id):
+    post = get_object_or_404(Post, id=id)
+
+    if post.author != request.user:
+        return JsonResponse({'error': 'You are not authorized to edit this post'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            # Parse JSON data from the request body
+            data = json.loads(request.body)
+            title = data.get('title')
+            content = data.get('content')
+
+            if not title or not content:
+                return JsonResponse({'error': 'Title and content cannot be empty'}, status=400)
+
+            post.title = title
+            post.content = content
+            post.save()
+
+            return JsonResponse({'success': True})
+        
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+    return render(request, 'edit_post.html', {'post': post})
+
+
+
+@login_required
+def delete_post(request, id):
+    post = get_object_or_404(Post, id=id)
+    
+    if post.author != request.user:
+        return JsonResponse({'error': 'You are not authorized to delete this post'}, status=403)
+    
+    if request.method == 'POST':
+        post.delete()
+        return JsonResponse({'success': True})
+
+    return render(request, 'confirm_delete.html', {'post': post})
 
 
