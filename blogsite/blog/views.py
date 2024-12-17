@@ -19,8 +19,6 @@ from rest_framework.decorators import permission_classes
 from django.http import JsonResponse
 import json
 
-
-
 def index(request):
     if request.user.is_authenticated:
         return redirect('posts')
@@ -86,7 +84,7 @@ def get_posts(request):
     elif request.method == 'POST':
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(author=request.user)  # Automatically set author
+            serializer.save(author=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -111,25 +109,9 @@ class PostListView(APIView):
         print("Serializer errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-def index(request):
-    return render(request, 'index.html')
-
 def post_detail(request, id):
     post = get_object_or_404(Post, id=id)
     return render(request, 'post_detail.html', {'post': post})
-
-def add_post(request):
-    if request.method == 'POST':
-        form = PostForm(request.POST) 
-        if form.is_valid():
-            form.save()
-            return redirect('index')
-    else:
-        form = PostForm()
-    return render(request, 'index.html', {'form': form})
-
-
 
 @login_required
 def edit_post(request, id):
@@ -140,7 +122,6 @@ def edit_post(request, id):
 
     if request.method == 'POST':
         try:
-            # Parse JSON data from the request body
             data = json.loads(request.body)
             title = data.get('title')
             content = data.get('content')
@@ -158,8 +139,6 @@ def edit_post(request, id):
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
     return render(request, 'edit_post.html', {'post': post})
-
-
 
 @login_required
 def delete_post(request, id):

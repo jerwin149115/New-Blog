@@ -15,7 +15,6 @@ urlpatterns = [
     path('api/posts/', views.get_posts, name='get_posts'),
     path('api/posts/<int:pk>/', views.get_post, name='get_post'),
     path('api/posts/create', PostListView.as_view(), name='post-list'),
-    path('add/', views.add_post, name='add_post'),
     path('post-detail/<int:id>/', views.post_detail, name='post_detail'),
     path('posts/<int:id>/edit', views.edit_post, name='edit_post'),
     path('posts/<int:id>/delete', views.delete_post, name='delete_post'),
