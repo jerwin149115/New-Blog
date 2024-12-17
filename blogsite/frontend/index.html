@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .login-page {
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+        .login-container {
+            background-color: #fff;
+            padding: 1.875rem;
+            border-radius: 1.25rem;
+            box-shadow: 0 0.625rem 1.875rem rgba(0, 0, 0, 0.5);
+            max-width: 25rem;
+            width: 100%;
+            text-align: center;
+        }
+        form {
+            display: none; /* Initially hidden */
+            margin-bottom: 20px;
+        }
+        form.active {
+            display: block; /* Show active form */
+        }
+        input {
+            margin: 5px 0;
+            padding: 10px;
+            width: 200px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .toggle-buttons {
+            margin-bottom: 1rem;
+        }
+        .toggle-buttons button {
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-container">
+            <div class="toggle-buttons">
+                <button id="show-register">Register</button>
+                <button id="show-login">Login</button>
+            </div>
+            <form id="register-form" class="active">
+                <h2>Register</h2>
+                <input type="text" id="register-username" placeholder="Username" required><br>
+                <input type="password" id="register-password" placeholder="Password" required><br>
+                <button type="submit">Register</button>
+            </form>
+            <form id="login-form">
+                <h2>Login</h2>
+                <input type="text" id="login-username" placeholder="Username" required><br>
+                <input type="password" id="login-password" placeholder="Password" required><br>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        const registerForm = document.getElementById("register-form");
+        const loginForm = document.getElementById("login-form");
+        const showRegisterButton = document.getElementById("show-register");
+        const showLoginButton = document.getElementById("show-login");
+
+        const BASE_URL = "http://127.0.0.1:8000";
+
+        showRegisterButton.addEventListener("click", () => {
+            registerForm.classList.add("active");
+            loginForm.classList.remove("active");
+        });
+
+        showLoginButton.addEventListener("click", () => {
+            loginForm.classList.add("active");
+            registerForm.classList.remove("active");
+        });
+
+        registerForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById("register-username").value;
+            const password = document.getElementById("register-password").value;
+
+            const response = await fetch(`${BASE_URL}/api/register/`, { 
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert("Registration successful!");
+            } else {
+                alert(data.error || "An error occurred");
+            }
+        });
+
+
+        loginForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+        
+            const username = document.getElementById("login-username").value;
+            const password = document.getElementById("login-password").value;
+        
+            const response = await fetch(`${BASE_URL}/api/login/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+            });
+        
+            const data = await response.json();
+        
+            if (data.access) {
+                alert("Login successful!");
+                localStorage.setItem("access_token", data.access);
+                localStorage.setItem("refresh_token", data.refresh);
+                window.location.href = "/posts/";
+            } else {
+                alert("Login failed: " + (data.error || "Invalid credentials"));
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const accessToken = localStorage.getItem("access_token");
+            if (accessToken) {
+                window.location.href = "/posts/"; 
+            }
+        });
+    </script>
+</body>
+</html>
