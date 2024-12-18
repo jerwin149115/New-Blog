@@ -17,7 +17,9 @@ urlpatterns = [
     path('api/posts/create', PostListView.as_view(), name='post-list'),
     path('post-detail/<int:id>/', views.post_detail, name='post_detail'),
     path('posts/<int:id>/edit', views.edit_post, name='edit_post'),
-    path('posts/<int:id>/delete', views.delete_post, name='delete_post'),
+    path('posts/<int:id>/delete', views.PostDeleteView.as_view(), name='delete_post'),
+    path('posts/<int:post_id>/comment/', views.add_comment, name="add_comment"),
+    path('accounts/login/', views.LoginView.as_view(), name='login')
 ]
 
 

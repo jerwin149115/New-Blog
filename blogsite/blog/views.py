@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Post
+from .models import Post, Comment
 from .forms import PostForm
 from .serializers import PostSerializer
 from django.contrib.auth.decorators import login_required
@@ -18,6 +18,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django.http import JsonResponse
 import json
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import authenticate, login
 
 def index(request):
     if request.user.is_authenticated:
@@ -59,19 +61,34 @@ class RegisterView(APIView):
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
+    def get(self, request):
+        # For form-based login, render the login form on GET requests
+        form = AuthenticationForm()
+        return render(request, 'index.html', {'form': form})
+
     def post(self, request):
+        # Handle the POST request for user login via API
         username = request.data.get("username")
         password = request.data.get("password")
-        user = User.objects.filter(username=username).first()
+        user = authenticate(request, username=username, password=password)
 
-        if user and user.check_password(password):
-            refresh = RefreshToken.for_user(user)
+        if user is not None:
+            login(request, user)
+            # Return a success response with tokens or redirect URL
             return Response({
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-                "redirect_url": "/posts/" 
+                "redirect_url": "/posts/"
             })
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+class PostDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, id):
+        post = Post.objects.get(id=id)
+        if post.user != request.user:
+            return Response({"error": "You do not have permission to delete this post."}, status=403)
+        post.delete()
+        return Response({"message": "Post deleted successfully"}, status=200)
     
     
 @api_view(['GET'])
@@ -153,4 +170,19 @@ def delete_post(request, id):
 
     return render(request, 'confirm_delete.html', {'post': post})
 
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
 
+    if request.method == "POST":
+        content = request.POST.get("content")
+        if content:
+            Comment.objects.create(
+                post=post,
+                user=request.user,
+                content=content
+            )
+            return JsonResponse({"success": True})
+        return JsonResponse({"success": False, "error": "Empty content"})
+    
+    return redirect('post-detail', post_id=post.id)

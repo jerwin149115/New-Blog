@@ -162,12 +162,39 @@
             <h2>{{ post.title }}</h2>
             <p>{{ post.content }}</p>
         </div>
-
-        <div style="display: flex; justify-content: center; gap: 10px;">
+    
+        <!-- Comment Section -->
+        <div id="comments-section" style="margin-top: 30px;">
+            <h3>Comments</h3>
+    
+            <!-- Existing Comments -->
+            {% for comment in post.comments.all %}
+                <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                    <strong>{{ comment.user.username }}</strong>
+                    <p>{{ comment.content }}</p>
+                    <small>Posted on {{ comment.created_at }}</small>
+                </div>
+            {% empty %}
+                <p>No comments yet. Be the first to comment!</p>
+            {% endfor %}
+        </div>
+    
+        <!-- Comment Form -->
+        <div style="margin-top: 20px;">
+            <h4>Leave a Comment</h4>
+            <form id="commentForm" method="POST">
+                {% csrf_token %}
+                <textarea id="commentContent" name="content" rows="4" placeholder="Write your comment here..." required 
+                    style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc;"></textarea>
+                <button type="submit" style="width: 100%; margin-top: 10px;">Post Comment</button>
+            </form>
+        </div>
+    
+        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
             <button id="editBtn">Edit</button>
             <button id="deleteBtn" style="background-color: #f44336;">Delete</button>
         </div>
-
+    
         <a href="/" style="display: block; text-align: center; margin-top: 20px; font-size: 16px;">Back to Home</a>
     </main>
     <div id="editModal" class="modal">
@@ -189,7 +216,6 @@
         </div>
     </div>
 
-    <!-- Delete Modal -->
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <span class="close" id="closeDeleteModal">&times;</span>
@@ -203,7 +229,6 @@
     </div>
 
     <script>
-        // Edit modal functionality
         var editModal = document.getElementById("editModal");
         var editBtn = document.getElementById("editBtn");
         var closeEditModal = document.getElementById("closeEditModal");
@@ -214,7 +239,6 @@
             editModal.style.display = "none";
         }
 
-        // Delete modal functionality
         var deleteModal = document.getElementById("deleteModal");
         var deleteBtn = document.getElementById("deleteBtn");
         var closeDeleteModal = document.getElementById("closeDeleteModal");
@@ -229,7 +253,6 @@
             deleteModal.style.display = "none";
         }
 
-        // Handle Edit form submission
         document.getElementById("editPostForm").onsubmit = function(e) {
             e.preventDefault();
             var title = document.getElementById("editTitle").value;
@@ -258,6 +281,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}',
+                    'Authorization': `Bearer ${yourAccessToken}`,
                 }
             })
             .then(response => response.json())
@@ -269,6 +293,27 @@
                 }
             });
         }
+
+        document.getElementById("commentForm").onsubmit = function(e) {
+            e.preventDefault();
+            let content = document.getElementById("commentContent").value;
+    
+            fetch("{% url 'add_comment' post.id %}", {
+                method: 'POST',
+                body: new URLSearchParams({ 'content': content }),
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("Error: " + (data.error || "Unable to post comment."));
+                }
+            });
+        };
     </script>
 
 </body>
