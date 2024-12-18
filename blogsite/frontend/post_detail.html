@@ -281,7 +281,6 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}',
-                    'Authorization': `Bearer ${yourAccessToken}`,
                 }
             })
             .then(response => response.json())
@@ -308,7 +307,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload();
+                    location.reload();  // Reload the page to display the new comment
                 } else {
                     alert("Error: " + (data.error || "Unable to post comment."));
                 }
